@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donor Account Portal</title>
+    <title>Customer Account Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -37,24 +37,24 @@
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-900">Donor Account Portal</h1>
-            <p class="text-gray-600 mt-2">View and manage your account information and donation history.</p>
+            <h1 class="text-4xl font-bold text-gray-900">Customer Account Portal</h1>
+            <p class="text-gray-600 mt-2">View and manage your account information and transaction history.</p>
         </header>
 
         <!-- Search Section -->
         <div class="card">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Find a Donor</h2>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Find a Customer</h2>
             <div class="flex flex-col sm:flex-row gap-4">
                 <input type="text" id="contactIdInput" placeholder="Enter Contact ID (e.g., recRNH8pcQalDnU4n)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                 <button id="fetchDataBtn" class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition w-full sm:w-auto">
-                    Fetch Donor Data
+                    Fetch Customer Data
                 </button>
             </div>
         </div>
         
         <!-- Loading and Error States -->
         <div id="loading" class="text-center py-8" style="display: none;">
-            <p class="text-lg font-medium text-gray-600">Loading donor data...</p>
+            <p class="text-lg font-medium text-gray-600">Loading customer data...</p>
         </div>
         <div id="error" class="text-center py-8 bg-red-100 text-red-700 rounded-lg" style="display: none;">
             <p id="errorMessage" class="font-medium"></p>
@@ -91,7 +91,7 @@
 
             <!-- Recurring Donation -->
             <section id="recurringDonation" class="card">
-                <h2 class="text-2xl font-semibold border-b pb-3 mb-4 text-gray-800">Recurring Donation</h2>
+                <h2 class="text-2xl font-semibold border-b pb-3 mb-4 text-gray-800">Subscriptions</h2>
                 <div id="recurringContent"></div>
             </section>
 
