@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Account Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .status-active { background-color: #dcfce7; color: #166534; }
+        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+        .status-hold { background-color: #fef9c3; color: #854d0e; }
+        .status-declined { background-color: #ffedd5; color: #9a3412; }
+        .status-succeeded { background-color: #dbeafe; color: #1e40af; }
+        .status-failed { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-900">Donor Account Portal</h1>
+            <p class="text-gray-600 mt-2">View and manage your account information and donation history.</p>
+        </header>
+
+        <!-- Search Section -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Find a Donor</h2>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input type="text" id="contactIdInput" placeholder="Enter Contact ID (e.g., recRNH8pcQalDnU4n)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button id="fetchDataBtn" class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition w-full sm:w-auto">
+                    Fetch Donor Data
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading and Error States -->
+        <div id="loading" class="text-center py-8" style="display: none;">
+            <p class="text-lg font-medium text-gray-600">Loading donor data...</p>
+        </div>
+        <div id="error" class="text-center py-8 bg-red-100 text-red-700 rounded-lg" style="display: none;">
+            <p id="errorMessage" class="font-medium"></p>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="portalContent" class="hidden">
+            <!-- Account Information -->
+            <section id="accountInfo" class="card">
+                <h2 class="text-2xl font-semibold border-b pb-3 mb-4 text-gray-800">Account Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div>
+                        <p class="font-semibold text-gray-700">Name</p>
+                        <p id="donorName" class="text-gray-900"></p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">Contact ID</p>
+                        <p id="donorContactId" class="text-gray-900 font-mono text-sm"></p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">Email</p>
+                        <p id="donorEmail" class="text-gray-900"></p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700">Phone</p>
+                        <p id="donorPhone" class="text-gray-900"></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="font-semibold text-gray-700">Address</p>
+                        <p id="donorAddress" class="text-gray-900"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recurring Donation -->
+            <section id="recurringDonation" class="card">
+                <h2 class="text-2xl font-semibold border-b pb-3 mb-4 text-gray-800">Recurring Donation</h2>
+                <div id="recurringContent"></div>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section id="transactions" class="card">
+                <h2 class="text-2xl font-semibold border-b pb-3 mb-4 text-gray-800">Recent Transactions</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Account Notes -->
+            <section id="accountNotes" class="card">
+                <h2 class="text-2xl font-semibold border-b pb-3 mb-4 text-gray-800">Account Notes</h2>
+                <div id="notesContainer" class="space-y-4">
+                    <!-- Notes will be injected here -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // TODO: Replace this with the actual URL of your deployed Google Cloud Function.
+        const functionUrl = 'https://custom-airtable-function-243410521050.us-central1.run.app'; 
+
+        // --- DOM ELEMENTS ---
+        const contactIdInput = document.getElementById('contactIdInput');
+        const fetchDataBtn = document.getElementById('fetchDataBtn');
+        const portalContent = document.getElementById('portalContent');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // --- EVENT LISTENERS ---
+        fetchDataBtn.addEventListener('click', handleFetchData);
+        contactIdInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                handleFetchData();
+            }
+        });
+
+        // --- DATA FETCHING ---
+        async function handleFetchData() {
+            const contactId = contactIdInput.value.trim();
+            if (!contactId) {
+                showError('Please enter a Contact ID.');
+                return;
+            }
+
+            if (functionUrl === 'YOUR_GCP_FUNCTION_URL_HERE') {
+                showError('Please configure the functionUrl in the HTML file.');
+                return;
+            }
+
+            // Reset UI states
+            portalContent.classList.add('hidden');
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+
+            try {
+                const response = await fetch(`${functionUrl}?contactId=${contactId}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to fetch data: ${response.status} ${errorText}`);
+                }
+
+                const data = await response.json();
+                populatePortal(data);
+                portalContent.classList.remove('hidden');
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                showError(err.message);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // --- UI POPULATION ---
+        function populatePortal(data) {
+            // Account Info
+            const { accountInfo, recurringDonations, transactions, notes } = data;
+            document.getElementById('donorName').textContent = accountInfo.Name || 'N/A';
+            document.getElementById('donorContactId').textContent = accountInfo['Contact ID'] || 'N/A';
+            document.getElementById('donorEmail').textContent = accountInfo.Email || 'N/A';
+            document.getElementById('donorPhone').textContent = accountInfo.Phone || 'N/A';
+            document.getElementById('donorAddress').textContent = accountInfo.Address || 'N/A';
+            
+            // Recurring Donation
+            populateRecurring(recurringDonations);
+
+            // Transactions
+            populateTransactions(transactions);
+
+            // Account Notes
+            populateNotes(notes);
+        }
+
+        function populateRecurring(donations) {
+            const container = document.getElementById('recurringContent');
+            const activeDonation = donations.find(d => d.Status === 'Active');
+
+            if (activeDonation) {
+                const formattedAmount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(activeDonation.Amount || 0);
+                const startDate = activeDonation['Start Date'] ? new Date(activeDonation['Start Date']).toLocaleDateString() : 'N/A';
+                
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <p class="font-semibold text-gray-700">Amount</p>
+                            <p class="text-2xl font-bold text-blue-600">${formattedAmount}</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-700">Frequency</p>
+                            <p class="text-lg text-gray-900">${activeDonation.Frequency || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-700">Start Date</p>
+                            <p class="text-lg text-gray-900">${startDate}</p>
+                        </div>
+                        <div class="md:col-span-3">
+                            <p class="font-semibold text-gray-700">Status</p>
+                            <p>${getStatusBadge(activeDonation.Status)}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `<p class="text-gray-500">No active recurring donation found.</p>`;
+            }
+        }
+
+        function populateTransactions(transactions) {
+            const tableBody = document.getElementById('transactionsTableBody');
+            tableBody.innerHTML = ''; // Clear previous results
+
+            if (!transactions || transactions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No transactions found.</td></tr>`;
+                return;
+            }
+
+            // Limit to the 10 most recent transactions
+            transactions.slice(0, 10).forEach(tx => {
+                const date = tx.Date ? new Date(tx.Date).toLocaleDateString() : 'N/A';
+                const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tx.Amount || 0);
+                const tracking = tx['Tracking Number'] ? `<a href="#" class="text-blue-600 hover:underline">${tx['Tracking Number']}</a>` : 'N/A';
+
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">${date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium">${amount}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${tx.Type || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${getStatusBadge(tx.Status)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-mono text-sm">${tracking}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function populateNotes(notes) {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = ''; // Clear previous results
+
+            if (!notes || notes.length === 0) {
+                container.innerHTML = `<p class="text-gray-500">No account notes found.</p>`;
+                return;
+            }
+
+            // Limit to the 5 most recent notes
+            notes.slice(0, 5).forEach(note => {
+                const date = note.Date ? new Date(note.Date).toLocaleString() : 'N/A';
+                
+                const noteElement = `
+                    <div class="p-4 bg-gray-100 rounded-lg">
+                        <p class="text-sm text-gray-600 font-semibold mb-1">${date} - by ${note.Agent || 'Unknown'}</p>
+                        <p class="text-gray-800">${note.Note || 'No content.'}</p>
+                    </div>
+                `;
+                container.innerHTML += noteElement;
+            });
+        }
+        
+        // --- UTILITY FUNCTIONS ---
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorDiv.style.display = 'block';
+            portalContent.classList.add('hidden');
+        }
+
+        function getStatusBadge(status) {
+            if (!status) return '';
+            const statusClass = `status-${status.toLowerCase()}`;
+            return `<span class="status-badge ${statusClass}">${status}</span>`;
+        }
+
+    </script>
+</body>
+</html>
+
